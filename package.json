@@ -1,0 +1,24 @@
+{
+    "name": "pricer",
+    "version": "0.1.0",
+    "description": "",
+    "keywords": [],
+    "author": "Ryan Kim",
+    "scripts": {
+        "hardhat": "hardhat",
+        "build": "npm run clean && npm run compile",
+        "clean": "hardhat clean",
+        "compile": "hardhat compile",
+        "test": "hardhat test"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+        "@uniswap/sdk-core": "^3.2.2",
+        "chalk": "^4.1.2",
+        "decimal.js": "^10.4.3",
+        "dotenv": "^16.0.3",
+        "hardhat": "^2.13.0",
+        "jsbi": "^4.3.0",
+        "tiny-invariant": "^1.3.1"
+    }
+}
