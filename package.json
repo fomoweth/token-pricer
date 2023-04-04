@@ -6,7 +6,7 @@
     "author": "Ryan Kim",
     "scripts": {
         "hardhat": "hardhat",
-        "build": "npm run clean && npm run compile",
+        "build:contract": "npm run clean && npm run compile",
         "clean": "hardhat clean",
         "compile": "hardhat compile",
         "test": "hardhat test"
