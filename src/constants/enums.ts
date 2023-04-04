@@ -1,0 +1,9 @@
+export enum ChainId {
+	MAINNET = 1,
+	// MAINNET_FORK = 31337,
+	OPTIMISM = 10,
+	BSC = 56,
+	POLYGON = 137,
+	ARBITRUM = 42161,
+	AVALANCHE = 43114,
+}
