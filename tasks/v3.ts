@@ -15,6 +15,14 @@ task('get-pool-price', 'retrieves the price of uniswap v3 pool')
 		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee))
 		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
 
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
+
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V3PoolPricerService(chainId)
@@ -34,6 +42,14 @@ task('get-pool-state', 'retrieves the state of uniswap v3 pool')
 		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee))
 		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
 
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
+
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V3PoolPricerService(chainId)
@@ -49,11 +65,19 @@ task('get-most-liquidity-pool', 'retrieves the state of uniswap v3 pool with mos
 	.addParam('base', 'address or ticker of base asset')
 	.addParam('quote', 'address or ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
-		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee)) as FeeAmount[]
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
 
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V3PoolPricerService(chainId)
+
+		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee)) as FeeAmount[]
 
 		const poolStates = await Promise.all(
 			poolFees.map(async (fee) => {

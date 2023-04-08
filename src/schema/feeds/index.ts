@@ -1,5 +1,5 @@
 import { ChainId } from "../../constants";
-import { AggregatorModel, Mapping } from "../../types";
+import { AggregatorModel } from "../../types";
 
 import mainnet from "./mainnet.json";
 import optimism from "./optimism.json";

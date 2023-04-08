@@ -1,8 +1,7 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { HardhatUserConfig } from "hardhat/config";
 
-import "./extensions";
-import { buildNetworksConfig, ChainId, CMC_API_KEY, EXPLORER_API_KEYS } from "./src";
+import { buildNetworksConfig, ChainId } from "./src";
 import { loadTasks } from "./tasks";
 
 loadTasks();
@@ -27,14 +26,6 @@ const config: HardhatUserConfig = {
 		],
 	},
 	networks: buildNetworksConfig(ChainId.MAINNET, true),
-	etherscan: {
-		apiKey: EXPLORER_API_KEYS
-	},
-	gasReporter: {
-		enabled: !!CMC_API_KEY,
-		coinmarketcap: CMC_API_KEY,
-		currency: "USD",
-	},
 	mocha: {
 		timeout: 60000,
 	},

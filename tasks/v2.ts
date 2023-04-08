@@ -9,6 +9,14 @@ task('get-pair-price', 'retrieves the price of uniswap v2 pair')
 	.addParam('quote', 'address or ticker of quote asset')
 	.addParam('protocol', 'name of protocol', 'uniswap')
 	.setAction(async ({ base, quote, protocol }, hre) => {
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
+
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V2PairPricerService(chainId)
@@ -25,6 +33,14 @@ task('get-pair-state', 'retrieves the state of uniswap v2 pair')
 	.addParam('quote', 'address or ticker of quote asset')
 	.addParam('protocol', 'name of protocol', 'uniswap')
 	.setAction(async ({ base, quote, protocol }, hre) => {
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
+
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V2PairPricerService(chainId)
@@ -40,6 +56,14 @@ task('get-most-liquidity-pair', 'retrieves the state of uniswap v2 pair with mos
 	.addParam('base', 'address or ticker of base asset')
 	.addParam('quote', 'address or ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
+		if (base.toUpperCase() === "ETH") {
+			base = "WETH"
+		}
+
+		if (quote.toUpperCase() === "ETH") {
+			quote = "WETH"
+		}
+
 		const chainId = hre.network.config.chainId!
 
 		const pricer = new V2PairPricerService(chainId)

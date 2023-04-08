@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
 
-import { BTC_QUOTE, ChainId, FEED_REGISTRY, NATIVE_ADDRESS, USD_QUOTE } from "../constants";
+import { BTC_QUOTE, ChainId, NATIVE_ADDRESS, USD_QUOTE } from "../constants";
 import { getFeeds } from "../schema";
 import { AggregatorModel, Mapping, Provider } from "../types";
 import { formatUnits, getAddress, isAddress, parseUnits } from "../utils";
@@ -16,6 +16,8 @@ import {
 	IFeedRegistry__factory
 } from "../../typechain-types";
 
+
+const FEED_REGISTRY = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
 
 interface AggregatorParams {
 	feed: AggregatorModel

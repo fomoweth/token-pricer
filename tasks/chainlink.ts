@@ -19,7 +19,6 @@ task('get-latest-answer', 'retrieves the latest answer on chainlink aggregator')
 		console.log(``)
 	})
 
-
 task('get-feed', 'retrieves the address of chainlink aggregator')
 	.addParam('base', 'ticker of base asset')
 	.addParam('quote', 'ticker of quote asset')

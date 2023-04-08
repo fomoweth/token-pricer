@@ -1,6 +1,13 @@
 import { NetworkConfig } from "../types";
-import { ChainId } from "./enums";
 
+export enum ChainId {
+	MAINNET = 1,
+	OPTIMISM = 10,
+	BSC = 56,
+	POLYGON = 137,
+	ARBITRUM = 42161,
+	AVALANCHE = 43114,
+}
 
 const NETWORKS: NetworkConfig[] = [
 	{
@@ -202,10 +209,6 @@ const NETWORKS: NetworkConfig[] = [
 ]
 
 export const getNetwork = (chainId: ChainId) => {
-	// if (chainId === ChainId.MAINNET_FORK) {
-	// 	chainId = ChainId.MAINNET
-	// }
-
 	const network = NETWORKS.find((network) => network.chainId === chainId)
 
 	if (!network) {

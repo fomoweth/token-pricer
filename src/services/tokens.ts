@@ -1,6 +1,7 @@
 import { Token } from "@uniswap/sdk-core";
 
 import { BTC_QUOTE, ChainId, getNetwork } from "../constants";
+import { getTokens } from "../schema";
 import { Mapping, Provider, TokenModel } from "../types";
 import { getAddress, isAddress } from "../utils";
 
@@ -8,16 +9,7 @@ import { BaseService } from "./common";
 import { MulticallService } from "./multicall";
 
 import { IERC20Metadata, IERC20Metadata__factory } from "../../typechain-types";
-import { getTokens } from "../schema/tokens";
 
-
-const _parseToken = (chainId: number, tokenAddress: string, name: string, symbol: string, decimals: number) => {
-	return new Token(chainId, tokenAddress, decimals, symbol, name)
-}
-
-export const parseToken = (token: TokenModel) => {
-	return _parseToken(token.chainId, token.address, token.name, token.symbol, token.decimals)
-}
 
 export class TokenService extends BaseService<IERC20Metadata> {
 	public readonly multicallService: MulticallService
@@ -49,12 +41,12 @@ export class TokenService extends BaseService<IERC20Metadata> {
 			const [name, symbol, decimals] = response.splice(0, 3) as [string, string, number]
 
 			if (!!name && !!symbol && !!decimals) {
-				const token = _parseToken(
+				const token = new Token(
 					this.chainId,
 					getAddress(tokenAddress),
-					name,
+					decimals,
 					symbol,
-					decimals
+					name
 				)
 
 				this.tokens[token.address] = token
@@ -91,8 +83,12 @@ export class TokenService extends BaseService<IERC20Metadata> {
 	public addTokens(tokens: TokenModel[]) {
 		tokens.map((token) => {
 			if (!this.tokens[token.address]) {
-				this.tokens[token.address] = parseToken(token)
+				this.tokens[token.address] = this._parseToken(token)
 			}
 		})
+	}
+
+	private _parseToken = (token: TokenModel) => {
+		return new Token(token.chainId, token.address, token.decimals, token.symbol, token.name)
 	}
 }

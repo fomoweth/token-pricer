@@ -1,10 +1,10 @@
 import { BytesLike, utils } from "ethers";
 
+import { ChainId } from "../constants";
 import { Provider } from "../types";
 import { BaseService } from "./common";
 
 import { IMulticall3, IMulticall3__factory } from "../../typechain-types";
-import { ChainId } from "../constants";
 
 
 const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11"

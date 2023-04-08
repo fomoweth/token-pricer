@@ -1,4 +1,4 @@
-import { ChainId } from "./enums"
+import { ChainId } from "./networks";
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 export const NATIVE_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
@@ -26,5 +26,3 @@ export const WRAPPED_NATIVE: { [id in ChainId]: string } = {
 	[ChainId.ARBITRUM]: WETH_ADDRESS[ChainId.ARBITRUM],
 	[ChainId.AVALANCHE]: WAVAX_ADDRESS,
 }
-
-export const FEED_REGISTRY = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
