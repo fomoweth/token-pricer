@@ -1,7 +1,8 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { HardhatUserConfig } from "hardhat/config";
 
-import { buildHardhatNetworkConfig, buildNetworkConfig, ChainId, CMC_API_KEY, EXPLORER_API_KEYS } from "./src";
+import { buildNetworksConfig, ChainId, CMC_API_KEY, EXPLORER_API_KEYS } from "./src";
+import "./extensions";
 
 
 const config: HardhatUserConfig = {
@@ -23,15 +24,7 @@ const config: HardhatUserConfig = {
 			}
 		],
 	},
-	networks: {
-		hardhat: buildHardhatNetworkConfig(ChainId.MAINNET, true),
-		mainnet: buildNetworkConfig(ChainId.MAINNET),
-		optimism: buildNetworkConfig(ChainId.OPTIMISM),
-		bsc: buildNetworkConfig(ChainId.BSC),
-		polygon: buildNetworkConfig(ChainId.POLYGON),
-		arbitrum: buildNetworkConfig(ChainId.ARBITRUM),
-		avalanche: buildNetworkConfig(ChainId.AVALANCHE),
-	},
+	networks: buildNetworksConfig(ChainId.MAINNET, true),
 	etherscan: {
 		apiKey: EXPLORER_API_KEYS
 	},
