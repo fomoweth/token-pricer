@@ -4,13 +4,13 @@ import { task } from "hardhat/config";
 import { ChainLinkPricerService } from "../src/services";
 
 
-task('latest-answer', 'retrieves latest answer on chainlink aggregator')
-	.addParam('base', 'address of the token to fetch the price')
-	.addParam('quote', 'ticker of quote asset: ETH | BTC | USD')
+task('get-latest-answer', 'retrieves the latest answer on chainlink aggregator')
+	.addParam('base', 'ticker of base asset')
+	.addParam('quote', 'ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
-		const chainId = hre.network.config.chainId
+		const chainId = hre.network.config.chainId!
 
-		const pricer = new ChainLinkPricerService(chainId!)
+		const pricer = new ChainLinkPricerService(chainId)
 
 		const answer = await pricer.getLatestAnswer(base, quote)
 
@@ -21,12 +21,12 @@ task('latest-answer', 'retrieves latest answer on chainlink aggregator')
 
 
 task('get-feed', 'retrieves the address of chainlink aggregator')
-	.addParam('base', 'address of the token to fetch the price')
-	.addParam('quote', 'ticker of quote asset: ETH | BTC | USD')
+	.addParam('base', 'ticker of base asset')
+	.addParam('quote', 'ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
-		const chainId = hre.network.config.chainId
+		const chainId = hre.network.config.chainId!
 
-		const pricer = new ChainLinkPricerService(chainId!)
+		const pricer = new ChainLinkPricerService(chainId)
 
 		const feed = pricer.getFeed(base.toUpperCase(), quote.toUpperCase())
 
