@@ -1,4 +1,5 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { FeeAmount } from "@uniswap/v3-sdk";
 
 import { ChainId } from "../constants";
 
@@ -48,6 +49,14 @@ export interface AggregatorModel {
 	decimals: number
 	contractAddress: string
 	proxyAddress: string | null
+}
+
+export interface PoolModel {
+	chainId: ChainId
+	pool: string
+	token0: string
+	token1: string
+	fee: FeeAmount
 }
 
 export interface TokenModel {

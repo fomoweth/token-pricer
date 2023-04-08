@@ -1,7 +1,9 @@
+import invariant from "tiny-invariant";
+
 import { BTC_QUOTE, ChainId, FEED_REGISTRY, NATIVE_ADDRESS, USD_QUOTE } from "../constants";
 import { getFeeds } from "../schema";
 import { AggregatorModel, Mapping, Provider } from "../types";
-import { assert, formatUnits, getAddress, isAddress, parseUnits } from "../utils";
+import { formatUnits, getAddress, isAddress, parseUnits } from "../utils";
 import { constants, div, lte, mul, square, toBN } from "../utils/math";
 
 import { BaseService } from "./common";
@@ -84,7 +86,7 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 	}
 
 	public async getLatestAnswer(base: string, quote: string) {
-		assert(base !== "USD", "USD cannot be set as base ticker")
+		invariant(base !== "USD", "USD cannot be set as base ticker")
 
 		const baseTicker = !!isAddress(base)
 			? (await this.tokensService.getToken(base)).symbol?.toUpperCase()
@@ -92,14 +94,13 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 		const quoteTicker = quote.toUpperCase()
 
-		if (
-			!baseTicker ||
-			!this.tokens.has(baseTicker) ||
-			!quoteTicker ||
-			!this.tokens.has(quoteTicker)
-		) {
-			throw new Error("Asset not supported")
-		}
+		invariant(
+			!!baseTicker &&
+			!!this.tokens.has(baseTicker) &&
+			!!quoteTicker &&
+			!!this.tokens.has(quoteTicker),
+			"Asset not supported"
+		)
 
 		// e.g.) UNI-ETH
 		// we wouldn't need to hop over between the price feeds
@@ -108,7 +109,6 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 		if (!!feed) {
 			const answer = await this._getLatestAnswer(feed, false)
-
 			return formatUnits(answer, feed.decimals)
 		}
 
@@ -218,8 +218,7 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 		for (const { feed, invert } of aggregators) {
 			const answer = await this._getLatestAnswer(feed, invert)
-
-			assert(+answer > 0, "Failed to fetch the price data")
+			invariant(+answer > 0, "Failed to fetch the price data")
 
 			if (!result) {
 				result = answer
@@ -232,11 +231,11 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 		}
 
 		const formatted = formatUnits(result!, aggregators[0].feed.decimals)
-		let fraction = formatted.split(".")
+		const fraction = formatted.split(".")
 
+		// ChainLink Aggregator has 8 decimals for USD pairs
 		if (quoteTicker === "USD" && fraction[1].length > 8) {
-			fraction[1] = fraction[1].slice(0, 8)
-			return fraction.join(".")
+			return [fraction[0], fraction[1].slice(0, 8)].join(".")
 		}
 
 		return formatted
@@ -262,9 +261,7 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 	public async fetchAggregator(tokenAddress: string, quoteType: "ETH" | "BTC" | "USD") {
 		try {
-			if (this.chainId !== ChainId.MAINNET) {
-				throw new Error(`FeedRegistry is not supported for ${this.network.label}`)
-			}
+			invariant(this.chainId === ChainId.MAINNET, `FeedRegistry is not supported for ${this.network.label}`)
 
 			let quote: string
 
@@ -294,10 +291,7 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 	public getAggregator(base: string, quote: string) {
 		const feed = this.getFeed(base, quote)
-
-		if (!feed) {
-			throw new Error("Feed not found")
-		}
+		invariant(!!feed, "Feed not found")
 
 		const aggregatorAddress = !!feed.proxyAddress ? feed.proxyAddress : feed.contractAddress
 
@@ -331,7 +325,7 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 	}
 
 	private getFeedKey(base: string, quote: string) {
-		assert(base !== quote, "Tickers must be identical")
+		invariant(base !== quote, "Tickers must be identical")
 
 		if (base === "USD") {
 			;[base, quote] = [quote, base]
