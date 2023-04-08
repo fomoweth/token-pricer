@@ -231,7 +231,15 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 			}
 		}
 
-		return formatUnits(result!, aggregators[0].feed.decimals)
+		const formatted = formatUnits(result!, aggregators[0].feed.decimals)
+		let fraction = formatted.split(".")
+
+		if (quoteTicker === "USD" && fraction[1].length > 8) {
+			fraction[1] = fraction[1].slice(0, 8)
+			return fraction.join(".")
+		}
+
+		return formatted
 	}
 
 	private async _getLatestAnswer(feed: AggregatorModel, invert: boolean) {

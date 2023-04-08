@@ -1,9 +1,11 @@
 import "@nomicfoundation/hardhat-toolbox";
 import { HardhatUserConfig } from "hardhat/config";
 
-import { buildNetworksConfig, ChainId, CMC_API_KEY, EXPLORER_API_KEYS } from "./src";
 import "./extensions";
+import { buildNetworksConfig, ChainId, CMC_API_KEY, EXPLORER_API_KEYS } from "./src";
+import { loadTasks } from "./tasks";
 
+loadTasks();
 
 const config: HardhatUserConfig = {
 	solidity: {
