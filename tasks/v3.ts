@@ -65,7 +65,15 @@ task('get-most-liquidity-pool', 'retrieves the state of uniswap v3 pool with mos
 			})
 		)
 
-		let result: any
+		let result: {
+			pool: string
+			token0: string
+			token1: string
+			fee: FeeAmount
+			sqrtRatioX96: string
+			tick: number
+			liquidity: string
+		} | undefined
 
 		for (const poolState of poolStates) {
 			if (!!poolState && (!result || +poolState.liquidity > +result.liquidity)) {

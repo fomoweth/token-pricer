@@ -1,9 +1,10 @@
 import { Price, Token } from "@uniswap/sdk-core";
-import { FACTORY_ADDRESS as V3_FACTORY_ADDRESS, FeeAmount, TickMath } from "@uniswap/v3-sdk";
+import { FACTORY_ADDRESS, FeeAmount, TickMath } from "@uniswap/v3-sdk";
 import invariant from "tiny-invariant";
 
+import { ChainId } from "../constants";
 import { Mapping, Provider } from "../types";
-import { constants, mul } from "../utils/math";
+import { constants, mul } from "../utils";
 
 import { BaseService } from "./common";
 import { TokenService } from "./tokens";
@@ -14,7 +15,6 @@ import {
 	IUniswapV3Pool,
 	IUniswapV3Pool__factory
 } from "../../typechain-types";
-import { ChainId } from "../constants";
 
 
 export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
@@ -30,7 +30,7 @@ export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
 
 		this.tokensService = new TokenService(chainId, provider)
 
-		this.factory = IUniswapV3Factory__factory.connect(V3_FACTORY_ADDRESS, this.provider)
+		this.factory = IUniswapV3Factory__factory.connect(FACTORY_ADDRESS, this.provider)
 	}
 
 	public async getLatestAnswer(base: string, quote: string, fee: FeeAmount, period?: number) {
