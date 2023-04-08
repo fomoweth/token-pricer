@@ -1,13 +1,13 @@
 import chalk from "chalk";
 import { task } from "hardhat/config";
 
-import { V2PairPricerService } from "../src/services";
+import { PairState, V2PairPricerService } from "../src/services";
 
 
 task('get-pair-price', 'retrieves the price of uniswap v2 pair')
 	.addParam('base', 'address or ticker of base asset')
 	.addParam('quote', 'address or ticker of quote asset')
-	.addParam('protocol', 'name of protocol', 'uniswap')
+	.addParam('protocol', 'name of protocol')
 	.setAction(async ({ base, quote, protocol }, hre) => {
 		if (base.toUpperCase() === "ETH") {
 			base = "WETH"
@@ -24,14 +24,14 @@ task('get-pair-price', 'retrieves the price of uniswap v2 pair')
 		const answer = await pricer.getLatestAnswer(protocol, base, quote)
 
 		console.log(``)
-		console.log(`[${base.toUpperCase()} / ${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
+		console.log(`[${base.toUpperCase()}-${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
 		console.log(``)
 	})
 
 task('get-pair-state', 'retrieves the state of uniswap v2 pair')
 	.addParam('base', 'address or ticker of base asset')
 	.addParam('quote', 'address or ticker of quote asset')
-	.addParam('protocol', 'name of protocol', 'uniswap')
+	.addParam('protocol', 'name of protocol')
 	.setAction(async ({ base, quote, protocol }, hre) => {
 		if (base.toUpperCase() === "ETH") {
 			base = "WETH"
@@ -68,26 +68,47 @@ task('get-most-liquidity-pair', 'retrieves the state of uniswap v2 pair with mos
 
 		const pricer = new V2PairPricerService(chainId)
 
-		let result: {
-			protocol: string
-			pair: string
-			token0: string
-			token1: string
-			liquidity: string
-			reserve0: string
-			reserve1: string
-			blockTimestampLast: string
-		} | undefined
+		let result: PairState | undefined
 
 		for (const protocol of pricer.protocols) {
 			const pairState = await pricer.getPairState(protocol, base, quote)
 
 			if (!!pairState && (!result || +pairState.liquidity > +result.liquidity)) {
-				result = { protocol: protocol.toLowerCase().replace("_", "-"), ...pairState }
+				result = pairState
 			}
 		}
 
 		console.log(``)
 		console.log(result)
+		console.log(``)
+	})
+
+task('v2-supported-protocols', 'retrieves the list of supported protocols')
+	.setAction(async (_, hre) => {
+		const chainId = hre.network.config.chainId!
+
+		const pricer = new V2PairPricerService(chainId)
+
+		const protocols: string[] = []
+
+		for (const protocol of pricer.protocols.values()) {
+			protocols.push(protocol.toLowerCase().replace("_", "-"))
+		}
+
+		console.log(``)
+		console.log(protocols)
+		console.log(``)
+	})
+
+task('v2-supported-networks', 'retrieves the list of supported networks')
+	.setAction(async (_, hre) => {
+		const chainId = hre.network.config.chainId!
+
+		const pricer = new V2PairPricerService(chainId)
+
+		const supportedNetworks = pricer.supportedChains()
+
+		console.log(``)
+		console.log(supportedNetworks)
 		console.log(``)
 	})

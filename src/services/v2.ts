@@ -2,7 +2,7 @@ import { Token } from "@uniswap/sdk-core";
 import invariant from "tiny-invariant";
 
 import { ChainId } from "../constants";
-import { Mapping, Provider } from "../types";
+import { Mapping, Provider, TokenModel } from "../types";
 import { formatUnits, isAddress, parseUnits } from "../utils";
 
 import { BaseService } from "./common";
@@ -31,6 +31,17 @@ const SUSHI_FACTORY_ADDRESS: { [id in ChainId]: string | undefined } = {
 	[ChainId.AVALANCHE]: "0xc35DADB65012eC5796536bD9864eD8773aBc74C4",
 }
 
+export interface PairState {
+	protocol: string
+	pair: string
+	token0: TokenModel
+	token1: TokenModel
+	liquidity: string
+	reserve0: string
+	reserve1: string
+	blockTimestampLast: string
+}
+
 export class V2PairPricerService extends BaseService<IUniswapV2Pair> {
 	public readonly tokensService: TokenService
 	public readonly pairAddresses: Mapping<string> = {}
@@ -38,39 +49,26 @@ export class V2PairPricerService extends BaseService<IUniswapV2Pair> {
 	public readonly factories: Mapping<IUniswapV2Factory> = {}
 	public readonly protocols: Set<string> = new Set()
 
-	constructor(chainId: ChainId, protocols?: Mapping<string>, provider?: Provider) {
+	constructor(chainId: ChainId, protocols?: ProtocolParams[], provider?: Provider) {
 		super(chainId, IUniswapV2Pair__factory, provider)
+
+		invariant(chainId !== ChainId.OPTIMISM, "There are no protocols exist on Optimism")
 
 		this.tokensService = new TokenService(chainId, provider)
 
-		switch (chainId) {
-			case ChainId.MAINNET:
-				this.addProtocol("UNISWAP", UNISWAP_V2_FACTORY_ADDRESS)
-				break
+		protocols = SUPPORTED_PROTOCOLS[chainId].concat(protocols ?? [])
 
-			case ChainId.BSC:
-				this.addProtocol("PANCAKE_SWAP", PANCAKE_SWAP_FACTORY_ADDRESS)
-				break
+		invariant(protocols.length > 0, `There are no protocols supported on ${ChainId[chainId].toLowerCase()}`)
 
-			case ChainId.POLYGON:
-				this.addProtocol("QUICK_SWAP", QUICK_SWAP_FACTORY_ADDRESS)
-				break
+		protocols.map(({ name, factory }) => {
+			const protocol = name.toUpperCase()
 
-			case ChainId.AVALANCHE:
-				this.addProtocol("TRADER_JOE", JOE_FACTORY_ADDRESS)
-				this.addProtocol("PANGOLIN", PANGOLIN_FACTORY_ADDRESS)
-				break
-		}
+			invariant(!this.protocols.has(protocol), "Protocol already exists")
+			invariant(!!isAddress(factory), "Invalid factory address")
 
-		if (!!SUSHI_FACTORY_ADDRESS[chainId]) {
-			this.addProtocol("SUSHI_SWAP", SUSHI_FACTORY_ADDRESS[chainId]!)
-		}
-
-		if (!!protocols) {
-			Object.entries(protocols).map(([protocol, factoryAddress]) => {
-				this.addProtocol(protocol, factoryAddress)
-			})
-		}
+			this.protocols.add(protocol)
+			this.factories[protocol] = IUniswapV2Factory__factory.connect(factory, this.provider)
+		})
 	}
 
 	public async getLatestAnswer(protocol: string, base: string, quote: string) {
@@ -99,14 +97,27 @@ export class V2PairPricerService extends BaseService<IUniswapV2Pair> {
 		])
 
 		return {
+			protocol: protocol.toLowerCase().replace("_", "-"),
 			pair: pair.address,
-			token0: token0.address,
-			token1: token1.address,
+			token0: {
+				chainId: this.chainId,
+				address: token0.address,
+				name: token0.name!,
+				symbol: token0.symbol!,
+				decimals: token0.decimals
+			},
+			token1: {
+				chainId: this.chainId,
+				address: token1.address,
+				name: token1.name!,
+				symbol: token1.symbol!,
+				decimals: token1.decimals
+			},
 			liquidity: totalSupply.toString(),
 			reserve0: reserve0.toString(),
 			reserve1: reserve1.toString(),
 			blockTimestampLast: blockTimestampLast.toString()
-		}
+		} as PairState
 	}
 
 	public async getPair(protocol: string, tokenA: string | Token, tokenB: string | Token) {
@@ -136,13 +147,72 @@ export class V2PairPricerService extends BaseService<IUniswapV2Pair> {
 		return { pair, token0, token1 }
 	}
 
-	public addProtocol(protocol: string, factoryAddress: string) {
-		const protocolName = protocol.toUpperCase()
+	public supportedChains() {
+		return Object.entries(SUPPORTED_PROTOCOLS).reduce<{ id: number, network: string }[]>((acc, [chainId, protocols]) => {
+			if (protocols.length > 0) {
+				acc.push({ id: +chainId, network: ChainId[+chainId] })
+			}
 
-		invariant(!this.protocols.has(protocolName), "Protocol already exists")
-		invariant(!!isAddress(factoryAddress), "Invalid factory address")
-
-		this.protocols.add(protocolName)
-		this.factories[protocolName] = IUniswapV2Factory__factory.connect(factoryAddress, this.provider)
+			return acc
+		}, [])
 	}
+}
+
+interface ProtocolParams {
+	name: string
+	factory: string
+}
+
+const SUPPORTED_PROTOCOLS: { [id in ChainId]: ProtocolParams[] } = {
+	[ChainId.MAINNET]: [
+		{
+			name: "UNISWAP",
+			factory: UNISWAP_V2_FACTORY_ADDRESS
+		},
+		{
+			name: "SUSHI-SWAP",
+			factory: SUSHI_FACTORY_ADDRESS[ChainId.MAINNET]!
+		},
+	],
+	[ChainId.OPTIMISM]: [],
+	[ChainId.BSC]: [
+		{
+			name: "PANCAKE-SWAP",
+			factory: PANCAKE_SWAP_FACTORY_ADDRESS
+		},
+		{
+			name: "SUSHI-SWAP",
+			factory: SUSHI_FACTORY_ADDRESS[ChainId.BSC]!
+		},
+	],
+	[ChainId.POLYGON]: [
+		{
+			name: "QUICK-SWAP",
+			factory: QUICK_SWAP_FACTORY_ADDRESS
+		},
+		{
+			name: "SUSHI-SWAP",
+			factory: SUSHI_FACTORY_ADDRESS[ChainId.POLYGON]!
+		},
+	],
+	[ChainId.ARBITRUM]: [
+		{
+			name: "SUSHI-SWAP",
+			factory: SUSHI_FACTORY_ADDRESS[ChainId.ARBITRUM]!
+		},
+	],
+	[ChainId.AVALANCHE]: [
+		{
+			name: "TRADER-JOE",
+			factory: JOE_FACTORY_ADDRESS
+		},
+		{
+			name: "PANGOLIN",
+			factory: PANGOLIN_FACTORY_ADDRESS
+		},
+		{
+			name: "SUSHI-SWAP",
+			factory: SUSHI_FACTORY_ADDRESS[ChainId.AVALANCHE]!
+		},
+	],
 }

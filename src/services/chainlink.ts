@@ -96,13 +96,8 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 
 		const quoteTicker = quote.toUpperCase()
 
-		invariant(
-			!!baseTicker &&
-			!!this.tokens.has(baseTicker) &&
-			!!quoteTicker &&
-			!!this.tokens.has(quoteTicker),
-			"Asset not supported"
-		)
+		invariant(!!baseTicker && !!this.tokens.has(baseTicker), "Base asset not supported")
+		invariant(!!quoteTicker && !!this.tokens.has(quoteTicker), "Quote asset not supported")
 
 		// e.g.) UNI-ETH
 		// we wouldn't need to hop over between the price feeds
@@ -334,5 +329,12 @@ export class ChainLinkPricerService extends BaseService<IAggregator> {
 		}
 
 		return `${base}-${quote}`
+	}
+
+	public supportedChains() {
+		return Object.values(ChainId).reduce<{ id: number, network: string }[]>((acc, chainId) =>
+			typeof chainId === "number" ? acc.concat({ id: chainId, network: ChainId[chainId] }) : acc,
+			[]
+		)
 	}
 }

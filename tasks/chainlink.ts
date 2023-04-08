@@ -4,7 +4,7 @@ import { task } from "hardhat/config";
 import { ChainLinkPricerService } from "../src/services";
 
 
-task('get-latest-answer', 'retrieves the latest answer on chainlink aggregator')
+task('get-latest-answer', 'retrieves the latest answer from chainlink aggregator')
 	.addParam('base', 'ticker of base asset')
 	.addParam('quote', 'ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
@@ -15,11 +15,11 @@ task('get-latest-answer', 'retrieves the latest answer on chainlink aggregator')
 		const answer = await pricer.getLatestAnswer(base, quote)
 
 		console.log(``)
-		console.log(`[${base.toUpperCase()} / ${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
+		console.log(`[${base.toUpperCase()}-${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
 		console.log(``)
 	})
 
-task('get-feed', 'retrieves the address of chainlink aggregator')
+task('get-feed', 'retrieves the chainlink feed data')
 	.addParam('base', 'ticker of base asset')
 	.addParam('quote', 'ticker of quote asset')
 	.setAction(async ({ base, quote }, hre) => {
@@ -37,5 +37,18 @@ task('get-feed', 'retrieves the address of chainlink aggregator')
 			console.log(feed)
 		}
 
+		console.log(``)
+	})
+
+task('chainlink-supported-networks', 'retrieves the list of supported network')
+	.setAction(async (_, hre) => {
+		const chainId = hre.network.config.chainId!
+
+		const pricer = new ChainLinkPricerService(chainId)
+
+		const supportedNetworks = pricer.supportedChains()
+
+		console.log(``)
+		console.log(supportedNetworks)
 		console.log(``)
 	})

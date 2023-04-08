@@ -3,7 +3,7 @@ import { FACTORY_ADDRESS, FeeAmount, TickMath } from "@uniswap/v3-sdk";
 import invariant from "tiny-invariant";
 
 import { ChainId } from "../constants";
-import { Mapping, Provider } from "../types";
+import { Mapping, Provider, TokenModel } from "../types";
 import { constants, mul } from "../utils";
 
 import { BaseService } from "./common";
@@ -17,6 +17,24 @@ import {
 } from "../../typechain-types";
 
 
+const SUPPORTED_CHAINS: ChainId[] = [
+	ChainId.MAINNET,
+	ChainId.OPTIMISM,
+	ChainId.BSC,
+	ChainId.POLYGON,
+	ChainId.ARBITRUM,
+]
+
+export interface PoolState {
+	pool: string
+	token0: TokenModel
+	token1: TokenModel
+	fee: FeeAmount
+	liquidity: string
+	sqrtRatioX96: string
+	tick: number
+}
+
 export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
 	public readonly tokensService: TokenService
 	public readonly poolAddresses: Mapping<string> = {}
@@ -26,7 +44,7 @@ export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
 	constructor(chainId: ChainId, provider?: Provider) {
 		super(chainId, IUniswapV3Pool__factory, provider)
 
-		invariant(chainId !== ChainId.AVALANCHE, `Uniswap V3 is not supported on ${chainId}`)
+		invariant(!!SUPPORTED_CHAINS.includes(chainId), `Uniswap V3 is not supported on ${chainId}`)
 
 		this.tokensService = new TokenService(chainId, provider)
 
@@ -66,13 +84,25 @@ export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
 
 		return {
 			pool: pool.address,
-			token0: token0.address,
-			token1: token1.address,
+			token0: {
+				chainId: this.chainId,
+				address: token0.address,
+				name: token0.name!,
+				symbol: token0.symbol!,
+				decimals: token0.decimals
+			},
+			token1: {
+				chainId: this.chainId,
+				address: token1.address,
+				name: token1.name!,
+				symbol: token1.symbol!,
+				decimals: token1.decimals
+			},
 			fee: fee,
+			liquidity: liquidity.toString(),
 			sqrtRatioX96: slot0.sqrtPriceX96.toString(),
 			tick: slot0.tick,
-			liquidity: liquidity.toString(),
-		}
+		} as PoolState
 	}
 
 	private async _twapTick(tokenA: string | Token, tokenB: string | Token, fee: FeeAmount, period: number) {
@@ -115,5 +145,13 @@ export class V3PoolPricerService extends BaseService<IUniswapV3Pool> {
 		const pool = this.getContract(this.poolAddresses[poolKey])
 
 		return { pool, token0, token1 }
+	}
+
+	public poolFees() {
+		return Object.values(FeeAmount).filter((fee) => typeof fee === "number") as FeeAmount[]
+	}
+
+	public supportedChains() {
+		return SUPPORTED_CHAINS.map((chainId) => ({ id: chainId, network: ChainId[chainId] })) as { id: number, network: string }[]
 	}
 }

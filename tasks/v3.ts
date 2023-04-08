@@ -1,9 +1,8 @@
-import { FeeAmount } from "@uniswap/v3-sdk";
 import chalk from "chalk";
 import { task } from "hardhat/config";
 import invariant from "tiny-invariant";
 
-import { V3PoolPricerService } from "../src/services";
+import { PoolState, V3PoolPricerService } from "../src/services";
 
 
 task('get-pool-price', 'retrieves the price of uniswap v3 pool')
@@ -12,9 +11,6 @@ task('get-pool-price', 'retrieves the price of uniswap v3 pool')
 	.addParam('fee', 'pool fee')
 	.addOptionalParam('period', 'seconds ago')
 	.setAction(async ({ base, quote, fee, period }, hre) => {
-		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee))
-		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
-
 		if (base.toUpperCase() === "ETH") {
 			base = "WETH"
 		}
@@ -27,10 +23,14 @@ task('get-pool-price', 'retrieves the price of uniswap v3 pool')
 
 		const pricer = new V3PoolPricerService(chainId)
 
+		const poolFees = pricer.poolFees()
+
+		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
+
 		const answer = await pricer.getLatestAnswer(base, quote, fee, period)
 
 		console.log(``)
-		console.log(`[${base.toUpperCase()} / ${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
+		console.log(`[${base.toUpperCase()}-${quote.toUpperCase()}]: ${chalk.cyanBright(answer)}`)
 		console.log(``)
 	})
 
@@ -39,9 +39,6 @@ task('get-pool-state', 'retrieves the state of uniswap v3 pool')
 	.addParam('quote', 'address or ticker of quote asset')
 	.addParam('fee', 'pool fee')
 	.setAction(async ({ base, quote, fee }, hre) => {
-		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee))
-		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
-
 		if (base.toUpperCase() === "ETH") {
 			base = "WETH"
 		}
@@ -54,7 +51,11 @@ task('get-pool-state', 'retrieves the state of uniswap v3 pool')
 
 		const pricer = new V3PoolPricerService(chainId)
 
-		const poolState = await pricer.getPoolState(base, quote, fee)
+		const poolFees = pricer.poolFees()
+
+		invariant(!!poolFees.includes(+fee), "Invalid pool fee")
+
+		const poolState = await pricer.getPoolState(base, quote, +fee)
 
 		console.log(``)
 		console.log(poolState)
@@ -77,27 +78,19 @@ task('get-most-liquidity-pool', 'retrieves the state of uniswap v3 pool with mos
 
 		const pricer = new V3PoolPricerService(chainId)
 
-		const poolFees = Object.values(FeeAmount).filter((poolFee) => !isNaN(+poolFee)) as FeeAmount[]
+		const poolFees = pricer.poolFees()
 
 		const poolStates = await Promise.all(
 			poolFees.map(async (fee) => {
 				try {
 					return await pricer.getPoolState(base, quote, fee)
 				} catch (e) {
-					console.error(e)
+					return undefined
 				}
 			})
 		)
 
-		let result: {
-			pool: string
-			token0: string
-			token1: string
-			fee: FeeAmount
-			sqrtRatioX96: string
-			tick: number
-			liquidity: string
-		} | undefined
+		let result: PoolState | undefined
 
 		for (const poolState of poolStates) {
 			if (!!poolState && (!result || +poolState.liquidity > +result.liquidity)) {
@@ -107,5 +100,18 @@ task('get-most-liquidity-pool', 'retrieves the state of uniswap v3 pool with mos
 
 		console.log(``)
 		console.log(result)
+		console.log(``)
+	})
+
+task('v3-supported-networks', 'retrieves the list of supported networks')
+	.setAction(async (_, hre) => {
+		const chainId = hre.network.config.chainId!
+
+		const pricer = new V3PoolPricerService(chainId)
+
+		const supportedNetworks = pricer.supportedChains()
+
+		console.log(``)
+		console.log(supportedNetworks)
 		console.log(``)
 	})
