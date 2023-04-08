@@ -5,36 +5,13 @@
 ### 1. Install Dependencies
 
 ```bash
-# clone the repo
-git clone https://github.com/own1t/token-pricer.git
-
-# move into the project directory
-cd token-pricer
-
 # install the dependencies
-npm i
+npm install
 ```
 
 ### 2. Create Environment Variables
 
-Create a `.env` file at the root of the beaker-workshop directory
-
-```bash
-# create .env file
-touch .env
-```
-
-Add two envrionment variables to the `.env` file:
-
-```bash
-# add the Alchemy API Key
-echo "ALCHEMY_API_KEY=YOUR_ALCHEMY_API_KEY" >> .env
-
-# add the Infura API Key
-echo "INFURA_API_KEY=YOUR_INFURA_API_KEY" >> .env
-```
-
-The resulting `.env` file should look something like this:
+Create an environment file named .env and fill the next environment variables:
 
 ```
 ALCHEMY_API_KEY=YOUR_ALCHEMY_API_KEY
@@ -96,7 +73,7 @@ npx hardhat chainlink-supported-networks
 npx hardhat get-latest-answer --base eth --quote usd --network mainnet
 
 # response
-[ETH / USD]: 1855.22538476
+[ETH-USD]: 1855.22538476
 ```
 
 **Note: you can fetch the price of any pair of tokens by cross-feed computation.**
