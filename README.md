@@ -7,6 +7,9 @@
 ```bash
 # install the dependencies
 npm install
+
+# generate typechain-types
+npm run build:contract
 ```
 
 ### 2. Create Environment Variables
